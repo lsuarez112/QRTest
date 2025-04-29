@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lector QR</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.9/html5-qrcode.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+        background: #f9f9f9;
+      }
+      #reader {
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+        border: 2px solid #333;
+        border-radius: 8px;
+        display: none;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #status,
+      #result {
+        margin-top: 15px;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      #status {
+        color: #444;
+      }
+      #result {
+        color: #2c3e50;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lector de Códigos QR</h1>
+    <button id="startBtn">Iniciar cámara</button>
+
+    <div id="reader"></div>
+
+    <div id="status">Esperando inicio...</div>
+    <p>Resultado: <span id="result">Ninguno</span></p>
+
+    <script>
+      const startBtn = document.getElementById('startBtn');
+      const readerElem = document.getElementById('reader');
+      const resultElem = document.getElementById('result');
+      const statusElem = document.getElementById('status');
+
+      let html5Qrcode;
+
+      startBtn.addEventListener('click', () => {
+        startBtn.disabled = true;
+        readerElem.style.display = 'block';
+        statusElem.textContent = 'Detectando cámaras disponibles...';
+
+        // Intentar obtener lista de cámaras
+        Html5Qrcode.getCameras()
+          .then((devices) => {
+            if (devices && devices.length > 0) {
+              const cameraId = devices[0].id;
+              statusElem.textContent = 'Iniciando cámara...';
+
+              html5Qrcode = new Html5Qrcode('reader');
+
+              html5Qrcode
+                .start(
+                  cameraId,
+                  {
+                    fps: 10,
+                    qrbox: 250,
+                    rememberLastUsedCamera: true,
+                  },
+                  (decodedText, decodedResult) => {
+                    resultElem.textContent = decodedText;
+                    statusElem.textContent = '✅ QR detectado';
+                    html5Qrcode.stop().then(() => {
+                      startBtn.disabled = false;
+                    });
+                  },
+                  (errorMessage) => {
+                    statusElem.textContent = 'Buscando QR...';
+                  }
+                )
+                .catch((err) => {
+                  statusElem.textContent =
+                    '❌ Error al iniciar la cámara: ' + err;
+                  startBtn.disabled = false;
+                });
+            } else {
+              statusElem.textContent =
+                '❌ No se encontraron cámaras disponibles.';
+              startBtn.disabled = false;
+            }
+          })
+          .catch((err) => {
+            statusElem.textContent =
+              '❌ getCameras() falló: ' + JSON.stringify(err);
+            startBtn.disabled = false;
+          });
+      });
+    </script>
+  </body>
+</html>
