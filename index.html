@@ -16,11 +16,20 @@
       font-size: 16px;
       margin-top: 10px;
     }
+    select {
+      padding: 5px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>Lector QR</h1>
   <p id="status">Detectando cámaras disponibles...</p>
+  
+  <!-- Selección de cámaras -->
+  <select id="cameraSelect" style="display:none;"></select>
+
   <div id="reader" style="display:none;"></div>
   <button id="btnIniciar" style="display:none;">Iniciar cámara</button>
 
@@ -28,20 +37,47 @@
     const status = document.getElementById("status");
     const btn = document.getElementById("btnIniciar");
     const reader = document.getElementById("reader");
+    const cameraSelect = document.getElementById("cameraSelect");
     let html5QrCode;
 
+    // Obtener las cámaras
     Html5Qrcode.getCameras()
       .then(cameras => {
         if (cameras && cameras.length) {
           status.textContent = `✅ Cámaras detectadas (${cameras.length}).`;
+
+          // Mostrar la lista de cámaras disponibles en un dropdown
+          cameraSelect.style.display = "block";
+          cameras.forEach((camera, index) => {
+            const option = document.createElement("option");
+            option.value = camera.id;
+            option.text = camera.label || `Cámara ${index + 1}`;
+            cameraSelect.appendChild(option);
+          });
+
+          // Mostrar el botón de iniciar
           btn.style.display = "inline-block";
 
+          // Evento para seleccionar la cámara
+          cameraSelect.addEventListener("change", (e) => {
+            status.textContent = `✅ Cámara seleccionada: ${e.target.selectedOptions[0].text}`;
+          });
+
           btn.onclick = () => {
+            const selectedCameraId = cameraSelect.value;
+
+            if (!selectedCameraId) {
+              status.textContent = "❌ Por favor selecciona una cámara.";
+              return;
+            }
+
             btn.disabled = true;
             reader.style.display = "block";
             html5QrCode = new Html5Qrcode("reader");
+
+            // Iniciar el escaneo con la cámara seleccionada
             html5QrCode.start(
-              cameras[0].id,
+              selectedCameraId,
               {
                 fps: 10,
                 qrbox: { width: 250, height: 250 }
@@ -54,7 +90,7 @@
                 });
               },
               errorMessage => {
-                // Mostrar error en consola, pero no en el DOM para no saturar
+                // No mostrar errores de escaneo en el DOM
               }
             ).catch(err => {
               status.textContent = `❌ Error al iniciar la cámara: ${err}`;
