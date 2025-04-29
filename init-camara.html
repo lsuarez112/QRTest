@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test de Cámara</title>
+</head>
+<body>
+  <h1>🔍 Test de Acceso a Cámara</h1>
+  <p id="status">Iniciando prueba...</p>
+
+  <script>
+    const statusElem = document.getElementById("status");
+
+    async function probarCamara() {
+      try {
+        // Verificamos soporte
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+          statusElem.textContent = "❌ Este navegador no soporta enumerateDevices().";
+          return;
+        }
+
+        // Probamos acceso directo a la cámara
+        statusElem.textContent = "🟡 Solicitando permisos de cámara...";
+        await navigator.mediaDevices.getUserMedia({ video: true });
+
+        statusElem.textContent = "🟢 Permiso otorgado. Buscando dispositivos...";
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputs = devices.filter(device => device.kind === 'videoinput');
+
+        if (videoInputs.length === 0) {
+          statusElem.textContent = "❌ No se detectaron cámaras.";
+        } else {
+          statusElem.textContent = `✅ Se detectaron ${videoInputs.length} cámara(s).`;
+        }
+      } catch (error) {
+        statusElem.textContent = "❌ Error: " + error.message;
+      }
+    }
+
+    probarCamara();
+  </script>
+</body>
+</html>
