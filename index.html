@@ -1,109 +1,69 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lector QR</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    #reader {
-      width: 100%;
-      max-width: 400px;
-      margin: auto;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    select {
-      padding: 5px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Lector QR</h1>
-  <p id="status">Detectando cámaras disponibles...</p>
-  
-  <!-- Selección de cámaras -->
-  <select id="cameraSelect" style="display:none;"></select>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lector de QR y Códigos de Barras</title>
 
-  <div id="reader" style="display:none;"></div>
-  <button id="btnIniciar" style="display:none;">Iniciar cámara</button>
+    <!-- Importación de la librería html5-qrcode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
-  <script>
-    const status = document.getElementById("status");
-    const btn = document.getElementById("btnIniciar");
-    const reader = document.getElementById("reader");
-    const cameraSelect = document.getElementById("cameraSelect");
-    let html5QrCode;
+    <!-- Importación de Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+      crossorigin="anonymous"
+    />
 
-    // Obtener las cámaras
-    Html5Qrcode.getCameras()
-      .then(cameras => {
-        if (cameras && cameras.length) {
-          status.textContent = `✅ Cámaras detectadas (${cameras.length}).`;
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
 
-          // Mostrar la lista de cámaras disponibles en un dropdown
-          cameraSelect.style.display = "block";
-          cameras.forEach((camera, index) => {
-            const option = document.createElement("option");
-            option.value = camera.id;
-            option.text = camera.label || `Cámara ${index + 1}`;
-            cameraSelect.appendChild(option);
-          });
+    <!-- BoxIcons -->
+    <link
+      href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css"
+      rel="stylesheet"
+    />
 
-          // Mostrar el botón de iniciar
-          btn.style.display = "inline-block";
+    <!-- Importación del archivo CSS -->
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <h1>Lector QR y Código de Barras</h1>
+    <!-- Mensaje de estado para mostrar información al usuario -->
+    <p id="status">Detectando cámaras disponibles...</p>
 
-          // Evento para seleccionar la cámara
-          cameraSelect.addEventListener("change", (e) => {
-            status.textContent = `✅ Cámara seleccionada: ${e.target.selectedOptions[0].text}`;
-          });
+    <!-- Selector de cámaras (oculto inicialmente) -->
+    <select id="cameraSelect" style="display: none"></select>
+    <br />
+    <!-- Botones para iniciar la lectura de QR o códigos de barras -->
+    <button id="btnQR" style="display: none">Iniciar lectura QR</button>
+    <button id="btnBar" style="display: none">Iniciar lectura de Barras</button>
 
-          btn.onclick = () => {
-            const selectedCameraId = cameraSelect.value;
+    <!-- Contenedor para el lector de códigos -->
+    <div id="reader"></div>
 
-            if (!selectedCameraId) {
-              status.textContent = "❌ Por favor selecciona una cámara.";
-              return;
-            }
+    <!-- Importación de jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-            btn.disabled = true;
-            reader.style.display = "block";
-            html5QrCode = new Html5Qrcode("reader");
+    <!-- Importación de Popper.js -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+      crossorigin="anonymous"
+    ></script>
 
-            // Iniciar el escaneo con la cámara seleccionada
-            html5QrCode.start(
-              selectedCameraId,
-              {
-                fps: 10,
-                qrbox: { width: 250, height: 250 }
-              },
-              qrCodeMessage => {
-                status.textContent = `✅ QR Detectado: ${qrCodeMessage}`;
-                html5QrCode.stop().then(() => {
-                  reader.style.display = "none";
-                  btn.disabled = false;
-                });
-              },
-              errorMessage => {
-                // No mostrar errores de escaneo en el DOM
-              }
-            ).catch(err => {
-              status.textContent = `❌ Error al iniciar la cámara: ${err}`;
-              btn.disabled = false;
-            });
-          };
-        } else {
-          status.textContent = "❌ No se detectaron cámaras.";
-        }
-      })
-      .catch(err => {
-        status.textContent = `❌ Error al obtener cámaras: ${err}`;
-      });
-  </script>
-</body>
+    <!-- Importación de Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js"
+      integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Importación del archivo JavaScript -->
+    <script src="assets/script.js"></script>
+  </body>
 </html>

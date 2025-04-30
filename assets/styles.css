@@ -1,0 +1,21 @@
+/* Estilos básicos para el diseño de la página */
+body {
+    font-family: sans-serif;
+    padding: 20px;
+    text-align: center;
+}
+
+#reader {
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+    display: none;
+    /* Oculto inicialmente */
+}
+
+button,
+select {
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px 5px;
+}
